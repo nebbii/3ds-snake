@@ -40,11 +40,6 @@ void Setup()
 
 void Draw()
 {
-    printf("\x1b[22;1HScore: %i    ", score);
-    printf("\x1b[23;1HFruit posX: %i   ", fruitX);
-    printf("\x1b[24;1HFruit posY: %i   ", fruitY);
-
-    // playfield
     for(int x = 0; x <= width; x++) {
         for(int y = 0; y <= height; y++) {
             if (x == 0 || y == 0 || x == width || y == height)
@@ -58,6 +53,8 @@ void Draw()
         }
     }
 
+    printf("\x1b[22;1HScore: %i    ", score);
+
     gfxFlushBuffers();
     gfxSwapBuffers();
     gspWaitForVBlank();
@@ -68,10 +65,11 @@ void Input()
     hidScanInput();
     u32 kDown = hidKeysDown();
 
-    if (kDown & KEY_DLEFT) dir = LEFT;
-    if (kDown & KEY_DRIGHT) dir = RIGHT;
-    if (kDown & KEY_DUP) dir = UP;
-    if (kDown & KEY_DDOWN) dir = DOWN;
+    if ((kDown & KEY_DLEFT)  && dir != RIGHT) dir = LEFT;
+    if ((kDown & KEY_DRIGHT) && dir != LEFT)  dir = RIGHT;
+    if ((kDown & KEY_DUP)    && dir != DOWN)  dir = UP;
+    if ((kDown & KEY_DDOWN)  && dir != UP)    dir = DOWN;
+
     if (kDown & KEY_START) gameOver = true;
 }
 
