@@ -1,14 +1,15 @@
 #include <3ds.h>
-//#include <iostream>
-#include <stdlib.h>
+#include <algorithm>
+#include <cmath>
 #include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
 
 bool gameOver;
 const int width = 20;
 const int height = 20;
-int snakeX, snakeY, fruitX, fruitY, score;
+int snakeX, snakeY, fruitX, fruitY, score, frame;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
 eDirection dir;
 
@@ -19,6 +20,10 @@ void drawCharXY(int x, int y, char s) {
 void seedFruit() {
     fruitX = 1 + rand() % (width-1);
     fruitY = 1 + rand() % (height-1);
+}
+
+bool speedFormula() {
+    return (frame % max(2, (int)(10 - round((score / 10)))) == 0);
 }
 
 void Setup()
@@ -72,22 +77,24 @@ void Input()
 
 void Logic()
 {
-    switch(dir)
-    {
-        case LEFT:
-            snakeX--;
-            break;
-        case RIGHT:
-            snakeX++;
-            break;
-        case UP:
-            snakeY--;
-            break;
-        case DOWN:
-            snakeY++;
-            break;
-        default: 
-            break;
+    if (speedFormula()) {
+        switch(dir)
+        {
+            case LEFT:
+                snakeX--;
+                break;
+            case RIGHT:
+                snakeX++;
+                break;
+            case UP:
+                snakeY--;
+                break;
+            case DOWN:
+                snakeY++;
+                break;
+            default: 
+                break;
+        }
     }
 
     if ((snakeX == fruitX) && (snakeY == fruitY)) {
@@ -111,10 +118,10 @@ int main() {
 
         while(!gameOver)
         {
+            frame++;
             Input();
             Draw();
             Logic();
-            svcSleepThread(50000 * 1000);
         }
 
         hidScanInput();
