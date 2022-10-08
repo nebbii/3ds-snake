@@ -12,6 +12,15 @@ int snakeX, snakeY, fruitX, fruitY, score;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
 eDirection dir;
 
+void drawCharXY(int x, int y, char s) {
+    printf("\x1b[%i;%iH%c", y+1, x+1, s);
+}
+
+void seedFruit() {
+    fruitX = 1 + rand() % (width-1);
+    fruitY = 1 + rand() % (height-1);
+}
+
 void Setup()
 {
     gameOver = false;
@@ -19,13 +28,9 @@ void Setup()
     snakeX = width / 2;
     snakeY = height / 2;
 
-    fruitX = 2 + rand() % width;
-    fruitY = 2 + rand() % height;
-    score = 0;
-}
+    seedFruit();
 
-void drawCharXY(int x, int y, char s) {
-    printf("\x1b[%i;%iH%c", y+1, x+1, s);
+    score = 0;
 }
 
 void Draw()
@@ -85,7 +90,12 @@ void Logic()
             break;
     }
 
-    if (snakeX >= width || snakeX <= 1 || snakeY >= height || snakeY <= 1)
+    if ((snakeX == fruitX) && (snakeY == fruitY)) {
+        score++;
+        seedFruit();
+    }
+
+    if (snakeX >= width || snakeX <= 0 || snakeY >= height || snakeY <= 0)
     {
         gameOver = true;
     }
