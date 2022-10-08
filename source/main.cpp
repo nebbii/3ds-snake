@@ -3,6 +3,7 @@
 #include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 using namespace std;
 
@@ -12,6 +13,7 @@ const int height = 20;
 int snakeX, snakeY, fruitX, fruitY, score, frame;
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
 eDirection dir;
+int nTail;
 
 void drawCharXY(int x, int y, char s) {
     printf("\x1b[%i;%iH%c", y+1, x+1, s);
@@ -96,7 +98,7 @@ void Logic()
     }
 
     if ((snakeX == fruitX) && (snakeY == fruitY)) {
-        score++;
+        score++; nTail++;
         seedFruit();
     }
 
