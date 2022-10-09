@@ -15,6 +15,12 @@ enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
 eDirection dir;
 int nTail;
 
+struct TailXY {
+    int x, y;
+};
+
+std::vector<TailXY> tailPieces;
+
 void drawCharXY(int x, int y, char s) {
     printf("\x1b[%i;%iH%c", y+1, x+1, s);
 }
@@ -28,30 +34,40 @@ bool speedFormula() {
     return (frame % max(2, (int)(10 - round((score / 10)))) == 0);
 }
 
-void Setup()
+void setup()
 {
     gameOver = false;
     dir = STOP;
     snakeX = width / 2;
     snakeY = height / 2;
 
+    tailPieces.clear();
+    nTail = 0;
+
     seedFruit();
 
     score = 0;
 }
 
-void Draw()
+void draw()
 {
-    for(int x = 0; x <= width; x++) {
-        for(int y = 0; y <= height; y++) {
-            if (x == 0 || y == 0 || x == width || y == height)
-                drawCharXY(x, y, '#');
-            else if (x == snakeX && y == snakeY)
-                drawCharXY(x, y, 'O');
-            else if (x == fruitX && y == fruitY)
-                drawCharXY(x, y, 'F');
-            else 
-                drawCharXY(x, y, ' ');
+    if (speedFormula()) {
+        for(int x = 0; x <= width; x++) {
+            for(int i = 1; i < nTail; i++) {
+                drawCharXY(tailPieces[i].x, tailPieces[i].y, 'o');
+                printf("\x1b[24;1HTaildraw: %i    ", i);
+            }
+
+            for(int y = 0; y <= height; y++) {
+                if (x == 0 || y == 0 || x == width || y == height)
+                    drawCharXY(x, y, '#');
+                else if (x == snakeX && y == snakeY)
+                    drawCharXY(x, y, 'O');
+                else if (x == fruitX && y == fruitY)
+                    drawCharXY(x, y, 'F');
+                else 
+                    drawCharXY(x, y, ' ');
+            }
         }
     }
 
@@ -62,20 +78,20 @@ void Draw()
     gspWaitForVBlank();
 }
 
-void Input()
+void input()
 {
     hidScanInput();
     u32 kDown = hidKeysDown();
 
-    if ((kDown & KEY_DLEFT)  && dir != RIGHT) dir = LEFT;
-    if ((kDown & KEY_DRIGHT) && dir != LEFT)  dir = RIGHT;
-    if ((kDown & KEY_DUP)    && dir != DOWN)  dir = UP;
-    if ((kDown & KEY_DDOWN)  && dir != UP)    dir = DOWN;
+    if (kDown & KEY_DLEFT)  dir = LEFT;
+    if (kDown & KEY_DRIGHT) dir = RIGHT;
+    if (kDown & KEY_DUP)    dir = UP;
+    if (kDown & KEY_DDOWN)  dir = DOWN;
 
-    if (kDown & KEY_START) gameOver = true;
+    //if (kDown & KEY_B) gameOver = true;
 }
 
-void Logic()
+void logic()
 {
     if (speedFormula()) {
         switch(dir)
@@ -95,6 +111,10 @@ void Logic()
             default: 
                 break;
         }
+
+        tailPieces.insert(tailPieces.begin(), {snakeX, snakeY});
+
+        if (tailPieces.size() > nTail) tailPieces.pop_back();
     }
 
     if ((snakeX == fruitX) && (snakeY == fruitY)) {
@@ -106,27 +126,42 @@ void Logic()
     {
         gameOver = true;
     }
+
+    for(int i = 1; i < nTail; i++) {
+        if((snakeX == tailPieces[i].x) && (snakeY == tailPieces[i].y))
+            gameOver = true;
+    }
 }
 
 int main() {
     gfxInitDefault();
     consoleInit(GFX_BOTTOM, NULL);
+    draw();
 
     while (aptMainLoop()) 
     {
-        Setup();
+        hidScanInput();
+        u32 kDown = hidKeysDown();
+
+        printf("\x1b[6;8HWelcome");
+        printf("\x1b[7;10Hto");
+        printf("\x1b[8;6HNebi Snake!");
+
+        printf("\x1b[12;3HPress A to Start");
+
+        printf("\x1b[15;3HPress B to close");
+
+        if (kDown & KEY_A) setup();
 
         while(!gameOver)
         {
             frame++;
-            Input();
-            Draw();
-            Logic();
+            input();
+            draw();
+            logic();
         }
 
-        hidScanInput();
-        u32 kDown = hidKeysDown();
-        if (kDown & KEY_START) break;
+        if (kDown & KEY_B) break;
     }
 
     gfxExit();
