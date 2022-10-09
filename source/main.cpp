@@ -10,9 +10,10 @@ using namespace std;
 bool gameOver;
 const int width = 20;
 const int height = 20;
-int snakeX, snakeY, fruitX, fruitY, score, frame;
+int snakeX, snakeY, fruitX, fruitY, score, hiScore, frame;
+
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
-eDirection dir;
+eDirection dir, prevDir;
 int nTail;
 
 struct TailXY {
@@ -55,7 +56,6 @@ void draw()
         for(int x = 0; x <= width; x++) {
             for(int i = 1; i < nTail; i++) {
                 drawCharXY(tailPieces[i].x, tailPieces[i].y, 'o');
-                printf("\x1b[24;1HTaildraw: %i    ", i);
             }
 
             for(int y = 0; y <= height; y++) {
@@ -72,6 +72,7 @@ void draw()
     }
 
     printf("\x1b[22;1HScore: %i    ", score);
+    printf("\x1b[24;1HHiScore: %i    ", hiScore);
 
     gfxFlushBuffers();
     gfxSwapBuffers();
@@ -83,10 +84,10 @@ void input()
     hidScanInput();
     u32 kDown = hidKeysDown();
 
-    if (kDown & KEY_DLEFT)  dir = LEFT;
-    if (kDown & KEY_DRIGHT) dir = RIGHT;
-    if (kDown & KEY_DUP)    dir = UP;
-    if (kDown & KEY_DDOWN)  dir = DOWN;
+    if ((kDown & KEY_DLEFT) && prevDir != RIGHT) dir = LEFT;
+    if ((kDown & KEY_DRIGHT) && prevDir != LEFT) dir = RIGHT;
+    if ((kDown & KEY_DUP) && prevDir != DOWN)    dir = UP;
+    if ((kDown & KEY_DDOWN) && prevDir != UP)    dir = DOWN;
 
     //if (kDown & KEY_B) gameOver = true;
 }
@@ -111,6 +112,7 @@ void logic()
             default: 
                 break;
         }
+        prevDir = dir;
 
         tailPieces.insert(tailPieces.begin(), {snakeX, snakeY});
 
@@ -119,6 +121,7 @@ void logic()
 
     if ((snakeX == fruitX) && (snakeY == fruitY)) {
         score++; nTail++;
+        if (score > hiScore) hiScore = score;
         seedFruit();
     }
 
