@@ -10,6 +10,7 @@ using namespace std;
 bool gameOver;
 const int width = 20;
 const int height = 20;
+const int center = 15;
 int snakeX, snakeY, fruitX, fruitY, score, hiScore, frame;
 
 enum eDirection { STOP = 0, LEFT, RIGHT, UP, DOWN};
@@ -22,8 +23,18 @@ struct TailXY {
 
 std::vector<TailXY> tailPieces;
 
+void drawTitleScreen() {
+    printf("\x1b[6;%iHWelcome", 8+center);
+    printf("\x1b[7;%iHto", 10+center);
+    printf("\x1b[8;%iHNebi Snake!", 6+center);
+
+    printf("\x1b[12;%iHPress A to Start", 3+center);
+
+    printf("\x1b[15;%iHPress B to close", 3+center);
+}
+
 void drawCharXY(int x, int y, char s) {
-    printf("\x1b[%i;%iH%c", y+1, x+1, s);
+    printf("\x1b[%i;%iH%c", y+1, x+1+center, s);
 }
 
 void seedFruit() {
@@ -71,8 +82,8 @@ void draw()
         }
     }
 
-    printf("\x1b[22;1HScore: %i    ", score);
-    printf("\x1b[24;1HHiScore: %i    ", hiScore);
+    printf("\x1b[22;%iHScore: %i    ", 1+center, score);
+    printf("\x1b[24;%iHHiScore: %i    ", 1+center, hiScore);
 
     gfxFlushBuffers();
     gfxSwapBuffers();
@@ -138,33 +149,26 @@ void logic()
 
 int main() {
     gfxInitDefault();
-    consoleInit(GFX_BOTTOM, NULL);
+    consoleInit(GFX_TOP, NULL);
     draw();
 
     while (aptMainLoop()) 
     {
-        hidScanInput();
-        u32 kDown = hidKeysDown();
+        if(gameOver) {
+            drawTitleScreen();
 
-        printf("\x1b[6;8HWelcome");
-        printf("\x1b[7;10Hto");
-        printf("\x1b[8;6HNebi Snake!");
+            hidScanInput();
+            u32 kDown = hidKeysDown();
 
-        printf("\x1b[12;3HPress A to Start");
-
-        printf("\x1b[15;3HPress B to close");
-
-        if (kDown & KEY_A) setup();
-
-        while(!gameOver)
-        {
+            if (kDown & KEY_A) setup();
+            if (kDown & KEY_B) break;
+        }
+        else {
             frame++;
             input();
             draw();
             logic();
         }
-
-        if (kDown & KEY_B) break;
     }
 
     gfxExit();
